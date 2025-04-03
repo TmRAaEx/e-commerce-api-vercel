@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(express.json())
+app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
   // origin: "http://localhost:5173",
@@ -29,7 +29,7 @@ app.use('/products', productRouter)
 app.use('/customers', customerRouter)
 app.use('/orders', orderRouter)
 app.use('/order-items', orderItemRouter)
-app.use('/stripe', stripeRouter)
+app.use('/checkout', stripeRouter)
 app.use('/auth', authRouter)
 app.use('/admin', adminRouter)
 
