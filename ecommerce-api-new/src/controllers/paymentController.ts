@@ -43,7 +43,7 @@ export const webHookEvents = async (req: Request, res: Response) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, signature, endpointSecret);
   } catch (err) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${logError(err)}`);
     throw err;
   }
 

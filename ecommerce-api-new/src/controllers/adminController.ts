@@ -40,7 +40,7 @@ export const createAdmin = async (req: Request, res: Response) => {
       insertedID: createdAdmin,
     });
   } catch (error) {
-    if (error.code === "ER_DUP_ENTRY") {
+    if ((error as any).code === "ER_DUP_ENTRY") {
       res.status(409).json({ error: "User already exists!" });
       return;
     }
