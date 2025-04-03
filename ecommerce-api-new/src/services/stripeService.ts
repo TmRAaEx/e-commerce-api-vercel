@@ -3,6 +3,11 @@ import { IOrder } from "../models/IOrder";
 import { updateOrder } from "./orderService";
 import { getOrderItems } from "./orderItemService";
 
+
+
+
+
+
 const createCheckoutSession = async (
   items: any[],
   orderID: IOrder["id"],
@@ -15,7 +20,7 @@ const createCheckoutSession = async (
       ui_mode: "embedded",
       client_reference_id: orderID,
       return_url:
-        "http://localhost:5173/order-confirmation?session_id={CHECKOUT_SESSION_ID}",
+        "https://ecomerce-client-vercel-arwp.vercel.app//order-confirmation?session_id={CHECKOUT_SESSION_ID}",
     });
 
     return session.client_secret;
