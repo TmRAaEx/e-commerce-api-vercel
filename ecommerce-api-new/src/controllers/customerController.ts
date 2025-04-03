@@ -1,96 +1,129 @@
 import { Request, Response } from "express";
-import { db } from "../config/db";
 import { ICustomer } from "../models/ICustomer";
 import { logError } from "../utilities/logger";
-import { ResultSetHeader } from "mysql2";
 
-export const getCustomers = async (_: any, res: Response) => { 
+import * as customerService from "../services/customerService";
+import { generateCustomerToken } from "../utilities/jwtFunctions";
+
+export const getCustomers = async (_: any, res: Response) => {
   try {
-    const sql = "SELECT * FROM customers";
-    const [rows] = await db.query<ICustomer[]>(sql)
-    res.json(rows);
+    const customers = await customerService.getCustomers();
+    res.status(200).json(customers);
   } catch (error) {
-    res.status(500).json({error: logError(error)})
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
 
-export const getCustomerById = async (req: Request, res: Response) => { 
-  const id: string = req.params.id;
-  
+export const getCustomerById = async (req: Request, res: Response) => {
+  const id = req.params.id;
+
   try {
-    const sql = "SELECT * FROM customers WHERE id = ?";
-    const [rows] = await db.query<ICustomer[]>(sql, [id])
+    const customer = await customerService.getCustomerById(Number(id));
 
-    rows && rows.length > 0
-      ? res.json(rows[0])
-      : res.status(404).json({message: 'Customer not found'})
+    if (!customer) {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+    res.status(200).json(customer);
   } catch (error) {
-    res.status(500).json({error: logError(error)})
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
 
-export const getCustomerByEmail = async (req: Request, res: Response) => { 
-  const email: string = req.params.email;
-  
+export const getCustomerByEmail = async (req: Request, res: Response) => {
+  const { email } = req.params;
+
   try {
-    const sql = "SELECT * FROM customers WHERE email = ?";
-    const [rows] = await db.query<ICustomer[]>(sql, [email])
+    const customer = await customerService.getCustomerByEmail(email);
 
-    rows && rows.length > 0
-      ? res.json(rows[0])
-      : res.status(404).json({message: 'Customer not found'})
+    if (!customer) {
+      res.status(404).json({ message: "Customer not found" });
+      return;
+    }
+    res.status(200).json(customer);
   } catch (error) {
-    res.status(500).json({error: logError(error)})
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
 
 export const createCustomer = async (req: Request, res: Response) => {
-  const { firstname, lastname, email, password, phone, street_address, postal_code, city, country }: ICustomer = req.body;
-  
+  const customer: ICustomer = req.body;
+
   try {
-    const sql = `
-      INSERT INTO customers (firstname, lastname, email, password, phone, street_address, postal_code, city, country)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const params = [firstname, lastname, email, password, phone, street_address, postal_code, city, country]
-    const [result] = await db.query<ResultSetHeader>(sql, params)
-    res.status(201).json({message: 'Customer created', id: result.insertId});
-  } catch(error: unknown) {
-    res.status(500).json({error: logError(error)})
+    const createdCustomerID = await customerService.createCustomer(customer);
+    res.status(201).json({
+      message: "Customer created",
+      insertedID: createdCustomerID,
+    });
+  } catch (error) {
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
 
 export const updateCustomer = async (req: Request, res: Response) => {
   const id: string = req.params.id;
-  const { firstname, lastname, email, password, phone, street_address, postal_code, city, country }: ICustomer = req.body;
-  
-  try {    
-    const sql = `
-      UPDATE customers 
-      SET firstname = ?, lastname = ?, email = ?, password = ?, phone = ?, street_address = ?, postal_code = ?, city = ?, country = ?
-      WHERE id = ?
-    `;
-    const params = [firstname, lastname, email, password, phone, street_address, postal_code, city, country, id]
-    const [result] = await db.query<ResultSetHeader>(sql, params)
-    
-    result.affectedRows === 0
-      ? res.status(404).json({message: 'Customer not found'})
-      : res.json({message: 'Customer updated'});
-  } catch(error) {
-    res.status(500).json({error: logError(error)})
+  const customer: ICustomer = req.body;
+
+  try {
+    await customerService.updateCustomer(customer, id);
+    res.json({ message: "Customer updated" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
+
 export const deleteCustomer = async (req: Request, res: Response) => {
   const id: string = req.params.id;
-  
+
   try {
-    const sql = "DELETE FROM customers WHERE id = ?";
-    const [result] = await db.query<ResultSetHeader>(sql, [id]);
-    
-    result.affectedRows === 0
-      ? res.status(404).json({message: 'Customer not found'})
-      : res.json({message: 'Customer deleted'});
+    const deletedRows = await customerService.deleteCustomer(Number(id));
+
+    deletedRows === 0
+      ? res.status(404).json({ message: "Customer not found" })
+      : res.json({ message: "Customer deleted" });
   } catch (error) {
-    res.status(500).json({error: logError(error)})
+    res.status(500).json({ error: logError(error) });
   }
-}
+};
+
+export const loginCustomer = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    const customerLoggedIn = await customerService.auth_customer(
+      email,
+      password
+    );
+
+    if (!customerLoggedIn) {
+      res.status(401).json({ message: "Incorrect credentials" });
+      return;
+    }
+
+    const { id, name, email: customerEmail } = customerLoggedIn;
+
+    const token = generateCustomerToken({ id, email: customerEmail });
+
+    res
+      .status(200)
+      .json({ customer: { id, name, email: customerEmail }, token });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const registerCustomer = async (req: Request, res: Response) => {
+  const customer = req.body;
+
+  try {
+    const createdCustomerID = await customerService.register_customer(customer);
+    res.status(201).json({
+      message: "Customer created",
+      insertedID: createdCustomerID,
+    });
+  } catch (error) {
+    res.status(500).json({ error: logError(error) });
+  }
+};
