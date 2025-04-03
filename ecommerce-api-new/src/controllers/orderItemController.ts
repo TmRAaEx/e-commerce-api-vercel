@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { db } from "../config/db";
 import { logError } from "../utilities/logger";
 import { IOrderItem } from "../models/IOrderItem";
-import { ResultSetHeader } from "mysql2";
+import { ResultSetHeader } from "mysql2";      
 
 import * as orderItemService from "../services/orderItemService";
 
