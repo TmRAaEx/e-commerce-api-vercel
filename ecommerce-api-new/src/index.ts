@@ -10,11 +10,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-import stripeRouter from "./routes/checkout";
 
-app.use("/checkout", stripeRouter); // must be placed here for express.raw()
-
-app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
@@ -23,6 +19,10 @@ app.use(
     credentials: true, // ✅ Allows cookies
   })
 );
+import stripeRouter from "./routes/checkout";
+
+app.use("/checkout", stripeRouter); // must be placed here for express.raw()
+app.use(express.json());
 
 // Routes
 import productRouter from "./routes/products";
