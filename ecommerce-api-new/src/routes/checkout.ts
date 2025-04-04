@@ -7,13 +7,15 @@ import {
 
 const router = Router();
 
-router.post("/create-session", express.json(), createCheckoutSession);
-
 router.post(
   "/stripe-webhook",
   express.raw({ type: "application/json" }),
   webHookEvents
 );
+
+router.post("/create-session", express.json(), createCheckoutSession);
+
+
 
 router.get("/session-status", getSessionStatus)
 
