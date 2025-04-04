@@ -10,6 +10,10 @@ dotenv.config();
 const app = express();
 
 // Middleware
+import stripeRouter from "./routes/checkout";
+
+app.use("/checkout", stripeRouter); // must be placed here for express.raw()
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -25,24 +29,22 @@ import productRouter from "./routes/products";
 import customerRouter from "./routes/customers";
 import orderRouter from "./routes/orders";
 import orderItemRouter from "./routes/orderItems";
-import stripeRouter from "./routes/checkout";
 import authRouter from "./routes/customers";
 import adminRouter from "./routes/admins";
 import moment from "moment";
-import { deleteOrder, getOrders } from "./services/orderService";
 app.use("/products", productRouter);
 app.use("/customers", customerRouter);
 app.use("/orders", orderRouter);
 app.use("/order-items", orderItemRouter);
-app.use("/checkout", stripeRouter);
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 
 // Attempt to connect to the database
 connectDB();
 
-
 // remove unhandled orders
+import { deleteOrder, getOrders } from "./services/orderService";
+
 cron.schedule("0 * * * *", async () => {
   console.log("Cron job running every hour");
 
