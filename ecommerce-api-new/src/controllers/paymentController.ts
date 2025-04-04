@@ -36,6 +36,10 @@ export const getSessionStatus = async (req: Request, res: Response) => {
 export const webHookEvents = async (req: Request, res: Response) => {
   const signature = req.headers["stripe-signature"];
 
+
+  console.log("sig",signature);
+  
+
   const endpointSecret = process.env.STRIPE_ENDPOINT_SECRET;
 
   let event;
