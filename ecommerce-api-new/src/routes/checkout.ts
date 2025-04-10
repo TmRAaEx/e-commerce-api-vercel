@@ -1,4 +1,5 @@
-import express, { json, Router } from "express";
+import express, { Router } from "express";
+import bodyParser from "body-parser";
 import {
   createCheckoutSession,
   getSessionStatus,
@@ -9,14 +10,12 @@ const router = Router();
 
 router.post(
   "/stripe-webhook",
-  express.raw(),
+  bodyParser.raw({ type: "application/json" }),
   webHookEvents
 );
 
 router.post("/create-session", express.json(), createCheckoutSession);
 
-
-
-router.get("/session-status", getSessionStatus)
+router.get("/session-status", getSessionStatus);
 
 export default router;
