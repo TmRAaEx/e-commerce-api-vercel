@@ -9,7 +9,7 @@ const router = Router();
 
 router.post(
   "/stripe-webhook",
-  express.raw({ type: "application/json" }),
+  express.raw(),
   webHookEvents
 );
 
