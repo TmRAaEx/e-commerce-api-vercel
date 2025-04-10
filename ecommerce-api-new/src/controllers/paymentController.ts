@@ -36,7 +36,7 @@ export const getSessionStatus = async (req: Request, res: Response) => {
 export const webHookEvents = async (req: Request, res: Response) => {
   const signature = req.headers["stripe-signature"];
 
-
+  console.log("request",req)  
   console.log("sig",signature);
   
 
