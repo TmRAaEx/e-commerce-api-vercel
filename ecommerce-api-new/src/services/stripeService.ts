@@ -4,10 +4,6 @@ import { updateOrder } from "./orderService";
 import { getOrderItems } from "./orderItemService";
 
 
-
-
-
-
 const createCheckoutSession = async (
   items: any[],
   orderID: IOrder["id"],
